@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #BEGIN_HEADER
-import logging
 import os
+import json
+import logging
 
 from installed_clients.KBaseReportClient import KBaseReport
 #END_HEADER
@@ -51,14 +52,23 @@ class genomeset_indexer:
         # ctx is the context object
         # return variables are: output
         #BEGIN run_genomeset_indexer
-        report = KBaseReport(self.callback_url)
-        report_info = report.create({'report': {'objects_created':[],
-                                                'text_message': params['parameter_1']},
-                                                'workspace_name': params['workspace_name']})
-        output = {
-            'report_name': report_info['name'],
-            'report_ref': report_info['ref'],
+        with open(params['obj_data_path']) as fd:
+            obj_data = json.load(fd)
+
+        data = obj_data['data']
+        doc = {
+            'genomes': [{'label': d['label'], 'genome_ref': d['ref']} for d in data['items']],
+            'description': data['description']
         }
+        index = {
+            'doc': doc
+        }
+
+        output_path = os.path.join(self.shared_folder, 'output.json')
+        with open(output_path, 'w') as fd:
+            fd.write(json.dumps(index))
+
+        output = {'filepath': output_path}
         #END run_genomeset_indexer
 
         # At some point might do deeper type checking...

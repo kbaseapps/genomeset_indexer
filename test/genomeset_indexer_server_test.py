@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import time
+import json
 import unittest
 from configparser import ConfigParser
 
@@ -46,6 +47,25 @@ class genomeset_indexerTest(unittest.TestCase):
         cls.wsName = "test_ContigFilter_" + str(suffix)
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
 
+    def _check_file_formatting(self, filepath):
+        ''''''
+        def check_datatypes(d):
+            if isinstance(d, dict):
+                for key, val in d.items():
+                    self.assertTrue(isinstance(key, str))
+                    check_datatypes(val)
+            elif isinstance(d, list):
+                for val in d:
+                    check_datatypes(val)
+            else:
+                self.assertTrue(isinstance(d, str) or isinstance(d, int) or \
+                    isinstance(d, float) or d is None or isinstance(d, bool))
+
+        with open(filepath) as fd:
+            for line in fd.readlines():
+                data = json.loads(line)
+                check_datatypes(data['doc'])
+
     @classmethod
     def tearDownClass(cls):
         if hasattr(cls, 'wsName'):
@@ -54,14 +74,12 @@ class genomeset_indexerTest(unittest.TestCase):
 
     # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
     def test_your_method(self):
-        # Prepare test objects in workspace if needed using
-        # self.getWsClient().save_objects({'workspace': self.getWsName(),
-        #                                  'objects': []})
-        #
-        # Run your method by
-        # ret = self.getImpl().your_method(self.getContext(), parameters...)
-        #
-        # Check returned data with
-        # self.assertEqual(ret[...], ...) or other unittest methods
-        ret = self.serviceImpl.run_genomeset_indexer(self.ctx, {'workspace_name': self.wsName,
-                                                             'parameter_1': 'Hello World!'})
+        """"""
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        params = {
+            'obj_data_path': os.path.join(curr_dir, 'data', "obj_data.json"),
+            'ws_info_path': "",
+            'obj_data_v1_path': "" 
+        }
+        ret = self.serviceImpl.run_genomeset_indexer(self.ctx, params)[0]
+        self._check_file_formatting(ret['filepath'])
