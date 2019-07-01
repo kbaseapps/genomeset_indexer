@@ -64,7 +64,7 @@ class genomeset_indexer:
             'doc': doc
         }
 
-        output_path = os.path.join(self.shared_folder, 'output.json')
+        output_path = os.path.join(self.shared_folder, 'index.json')
         with open(output_path, 'w') as fd:
             fd.write(json.dumps(index))
 
